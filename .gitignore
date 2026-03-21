@@ -1,0 +1,18 @@
+# local settings
+mise.local.toml
+
+# workspace
+CLAUDE.md
+.backlog
+.claude
+.go
+CLAUDE.md
+
+# leftover build artifacts
+*.tar
+*.xpkg
+**/function-*/function-*
+
+# helm dependency downloads
+**/chart/charts/
+**/chart/Chart.lock

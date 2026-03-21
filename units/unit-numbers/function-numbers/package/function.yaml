@@ -1,0 +1,7 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-numbers
+spec:
+  package: ${REGISTRY}/function-numbers:${FUNCTION_VERSION}
+  packagePullPolicy: IfNotPresent

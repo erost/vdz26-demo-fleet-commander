@@ -1,0 +1,8 @@
+go 1.26.1
+
+use (
+	./commander/public-function-numbers
+	./commander/public-function-strings
+	./units/unit-numbers/function-numbers
+	./units/unit-strings/function-strings
+)

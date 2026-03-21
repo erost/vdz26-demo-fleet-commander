@@ -1,0 +1,5 @@
+apiVersion: v2
+name: generic-composition-chart
+description: Library chart providing reusable templates for Crossplane composition charts.
+type: library
+version: 0.1.0

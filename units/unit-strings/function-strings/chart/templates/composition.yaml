@@ -1,0 +1,13 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: strings.internal.platform.org
+spec:
+  compositeTypeRef:
+    apiVersion: internal.platform.org/v1alpha1
+    kind: Strings
+  mode: Pipeline
+  pipeline:
+    - step: compose-nop-resource
+      functionRef:
+        name: function-strings

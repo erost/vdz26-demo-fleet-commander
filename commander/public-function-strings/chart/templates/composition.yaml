@@ -1,0 +1,13 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: strings.platform.org
+spec:
+  compositeTypeRef:
+    apiVersion: platform.org/v1alpha1
+    kind: Strings
+  mode: Pipeline
+  pipeline:
+    - step: compose-kubernetes-object
+      functionRef:
+        name: public-function-strings

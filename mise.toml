@@ -1,0 +1,62 @@
+[tools]
+crossplane = "2.2.0"
+go = "1.26.1"
+helm = "3.17.3"
+kind = "0.31.0"
+kubectl = "1.35.3"
+yq = "latest"
+
+[settings]
+experimental = true
+
+[env]
+GOPATH = "{{config_root}}/.go"
+
+[tasks."go:test"]
+description = "Run tests for all composition functions"
+run = "go test function-numbers function-strings public-function-numbers public-function-strings"
+
+[tasks."all:setup"]
+description = "Create and configure all KinD clusters (commander + units) and provider-kubernetes"
+run = "bash .scripts/setup.sh"
+
+[tasks."all:deploy"]
+description = "Deploy all compositions to all clusters from deployment.yaml"
+run = "bash .scripts/deploy.sh"
+
+[tasks."all:teardown"]
+description = "Delete all KinD clusters listed in deployment.yaml"
+run = """
+yq -r '["commander", (.units[].name)] | .[]' deployment.yaml | while read -r name; do
+  kind delete cluster --name "$name" || true
+done
+"""
+
+[tasks."composition:build"]
+description = "Build and push one composition's image and Helm chart. Args: <function-dir> <function-name>"
+run = "bash .scripts/build-function.sh $@"
+
+[tasks."composition:build:all"]
+description = "Build and push all function images sequentially"
+run = [
+    "bash .scripts/build-function.sh units/unit-numbers/function-numbers function-numbers",
+    "bash .scripts/build-function.sh units/unit-strings/function-strings function-strings",
+    "bash .scripts/build-function.sh commander/public-function-numbers public-function-numbers",
+    "bash .scripts/build-function.sh commander/public-function-strings public-function-strings",
+]
+
+[tasks."numbers:create"]
+description = "Apply example Numbers XR to the commander"
+run = "kubectl --context=kind-commander apply -f examples/numbers.yaml"
+
+[tasks."numbers:delete"]
+description = "Delete example Numbers XR from the commander"
+run = "kubectl --context=kind-commander delete -f examples/numbers.yaml"
+
+[tasks."strings:create"]
+description = "Apply example Strings XR to the commander"
+run = "kubectl --context=kind-commander apply -f examples/strings.yaml"
+
+[tasks."strings:delete"]
+description = "Delete example Strings XR from the commander"
+run = "kubectl --context=kind-commander delete -f examples/strings.yaml"

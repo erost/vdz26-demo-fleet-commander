@@ -1,0 +1,9 @@
+apiVersion: v2
+name: public-function-numbers
+description: Crossplane composition chart for the public Numbers XR on commander.
+type: application
+version: 0.0.0
+dependencies:
+  - name: generic-composition-chart
+    version: "0.1.0"
+    repository: "file://../../../common/generic-composition-chart"

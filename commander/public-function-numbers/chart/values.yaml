@@ -1,0 +1,9 @@
+# OCI registry prefix where the function image is hosted (no trailing slash).
+# Example: ghcr.io/myorg
+registry: ""
+
+# Image tag.
+tag: ""
+
+# Optional: name of an imagePullSecret for private registries.
+pullSecret: ""

@@ -1,0 +1,32 @@
+crossplaneVersion: "2.2.0"
+
+commander:
+  providers:
+    - name: provider-kubernetes
+      manifestFile: common/deployment/provider-kubernetes.yaml
+  compositions:
+    - name: public-function-numbers
+      chart: oci://ghcr.io/erost/charts/public-function-numbers
+      version: "0.0.1"
+    - name: public-function-strings
+      chart: oci://ghcr.io/erost/charts/public-function-strings
+      version: "0.0.1"
+
+units:
+  - name: unit-numbers
+    providers:
+      - name: provider-nop
+        manifestFile: common/deployment/provider-nop.yaml
+    compositions:
+      - name: function-numbers
+        chart: oci://ghcr.io/erost/charts/function-numbers
+        version: "0.0.1"
+
+  - name: unit-strings
+    providers:
+      - name: provider-nop
+        manifestFile: common/deployment/provider-nop.yaml
+    compositions:
+      - name: function-strings
+        chart: oci://ghcr.io/erost/charts/function-strings
+        version: "0.0.1"

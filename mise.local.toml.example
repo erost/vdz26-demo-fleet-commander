@@ -1,0 +1,12 @@
+# Copy this file to mise.local.toml and fill in your values.
+# mise.local.toml is gitignored and never committed.
+
+[env]
+# OCI registry prefix used for building and pushing function images (no trailing slash).
+# For GitHub Container Registry: ghcr.io/<your-github-username>
+BUILD_REGISTRY = "ghcr.io/erost"
+
+# Version tag to use for built function images. 
+# Must be a valid semver string (e.g. "1.2.3" or "0.0.0-dev8"). 
+# This is used as the image tag for all built function images and charts.
+BUILD_VERSION = "10.0.1"

@@ -1,0 +1,7 @@
+apiVersion: platform.org/v1alpha1
+kind: Strings
+metadata:
+  name: example-strings
+  namespace: default
+spec:
+  value: "hello"

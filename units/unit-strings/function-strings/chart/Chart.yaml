@@ -1,0 +1,9 @@
+apiVersion: v2
+name: function-strings
+description: Crossplane composition chart for the internal Strings XR on unit-strings.
+type: application
+version: 0.0.0
+dependencies:
+  - name: generic-composition-chart
+    version: "0.1.0"
+    repository: "file://../../../../common/generic-composition-chart"

@@ -1,0 +1,24 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: strings.platform.org
+spec:
+  scope: Namespaced
+  group: platform.org
+  names:
+    kind: Strings
+    plural: strings
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                value:
+                  type: string
+                  description: The string value to provision on unit-strings.

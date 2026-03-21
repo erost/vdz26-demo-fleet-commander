@@ -1,0 +1,7 @@
+apiVersion: platform.org/v1alpha1
+kind: Numbers
+metadata:
+  name: example-numbers
+  namespace: default
+spec:
+  value: "42"
