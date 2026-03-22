@@ -15,29 +15,42 @@ FUNCTION_NAME="$2"  # e.g. function-numbers
 BUILD_REGISTRY="${BUILD_REGISTRY:?BUILD_REGISTRY env var is required (e.g. ghcr.io/erost)}"
 BUILD_VERSION="${BUILD_VERSION:?BUILD_VERSION env var is required}"
 
-RUNTIME_IMAGE="${FUNCTION_NAME}-runtime:local"
-RUNTIME_TARBALL="/tmp/${FUNCTION_NAME}-runtime.tar"
 IMAGE="${BUILD_REGISTRY}/${FUNCTION_NAME}:${BUILD_VERSION}"
-XPKG_FILE="${FUNCTION_NAME}.xpkg"
 CHART_VERSION="${BUILD_VERSION}"
 CHART_FILE="${FUNCTION_NAME}-${CHART_VERSION}.tgz"
 
-echo "==> Building runtime image: ${RUNTIME_IMAGE}"
-docker buildx build --load -t "${RUNTIME_IMAGE}" "${FUNCTION_DIR}"
+PLATFORMS=("linux/amd64" "linux/arm64")
+XPKG_FILES=()
+RUNTIME_TARBALLS=()
 
-echo "==> Saving runtime image to tarball"
-docker save "${RUNTIME_IMAGE}" -o "${RUNTIME_TARBALL}"
+for platform in "${PLATFORMS[@]}"; do
+  arch="${platform#linux/}"
+  runtime_image="${FUNCTION_NAME}-runtime-${arch}:local"
+  runtime_tarball="/tmp/${FUNCTION_NAME}-runtime-${arch}.tar"
+  xpkg_file="${FUNCTION_NAME}-${arch}.xpkg"
 
-echo "==> Building xpkg: ${IMAGE}"
-crossplane xpkg build \
-  --package-root="${FUNCTION_DIR}/package" \
-  --ignore="function.yaml,xrd.yaml,composition.yaml" \
-  --embed-runtime-image-tarball="${RUNTIME_TARBALL}" \
-  --package-file="${XPKG_FILE}"
+  echo "==> Building runtime image for ${platform}: ${runtime_image}"
+  docker buildx build --platform "${platform}" --load -t "${runtime_image}" "${FUNCTION_DIR}"
 
-echo "==> Pushing xpkg: ${IMAGE}"
+  echo "==> Saving runtime image to tarball"
+  docker save "${runtime_image}" -o "${runtime_tarball}"
+
+  echo "==> Building xpkg for ${platform}: ${IMAGE}"
+  crossplane xpkg build \
+    --package-root="${FUNCTION_DIR}/package" \
+    --ignore="function.yaml,xrd.yaml,composition.yaml" \
+    --embed-runtime-image-tarball="${runtime_tarball}" \
+    --package-file="${xpkg_file}"
+
+  XPKG_FILES+=("${xpkg_file}")
+  RUNTIME_TARBALLS+=("${runtime_tarball}")
+done
+
+XPKG_LIST=$(IFS=,; echo "${XPKG_FILES[*]}")
+
+echo "==> Pushing xpkg (multi-arch): ${IMAGE}"
 crossplane xpkg push \
-  --package-files="${XPKG_FILE}" \
+  --package-files="${XPKG_LIST}" \
   "${IMAGE}"
 
 echo "==> Building Helm chart: ${FUNCTION_NAME} ${CHART_VERSION}"
@@ -56,6 +69,6 @@ trap - EXIT
 echo "==> Pushing Helm chart: oci://${BUILD_REGISTRY}/charts/${FUNCTION_NAME}:${CHART_VERSION}"
 helm push "${CHART_FILE}" "oci://${BUILD_REGISTRY}/charts"
 
-rm -f "${XPKG_FILE}" "${RUNTIME_TARBALL}" "${CHART_FILE}"
+rm -f "${XPKG_FILES[@]}" "${RUNTIME_TARBALLS[@]}" "${CHART_FILE}"
 
 echo "==> ${IMAGE} built and pushed (image + chart)"

@@ -20,6 +20,77 @@ create_cluster() {
   fi
 }
 
+patch_coredns_forwarder() {
+  local context="$1"
+  echo "==> Patching CoreDNS forwarder to 1.1.1.1 on ${context}"
+  local corefile
+  corefile=$(kubectl --context="${context}" -n kube-system \
+    get configmap coredns -o jsonpath='{.data.Corefile}')
+  if echo "${corefile}" | grep -q 'forward \. 1\.1\.1\.1'; then
+    echo "==> CoreDNS forwarder already set to 1.1.1.1, skipping"
+    return
+  fi
+  local modified
+  modified=$(echo "${corefile}" | sed 's|forward \. /etc/resolv\.conf|forward . 1.1.1.1|')
+  kubectl --context="${context}" create configmap coredns \
+    --from-literal=Corefile="${modified}" \
+    -n kube-system \
+    --dry-run=client -o yaml \
+    | kubectl --context="${context}" replace -f -
+  echo "==> Restarting CoreDNS on ${context}"
+  kubectl --context="${context}" -n kube-system rollout restart deployment coredns
+  kubectl --context="${context}" -n kube-system rollout status deployment coredns --timeout=60s
+}
+
+patch_coredns_unit_hosts() {
+  local context="$1"
+  echo "==> Patching CoreDNS on ${context} with unit host entries"
+
+  local corefile_tmp hosts_block_tmp modified_tmp
+  corefile_tmp=$(mktemp /tmp/coredns-corefile-XXXXXX)
+  hosts_block_tmp=$(mktemp /tmp/coredns-hosts-XXXXXX)
+  modified_tmp=$(mktemp /tmp/coredns-modified-XXXXXX)
+  trap 'rm -f "$corefile_tmp" "$hosts_block_tmp" "$modified_tmp"' RETURN
+
+  kubectl --context="${context}" -n kube-system \
+    get configmap coredns -o jsonpath='{.data.Corefile}' > "${corefile_tmp}"
+
+  local indent
+  indent=$(grep -m1 '[[:space:]]*forward ' "${corefile_tmp}" | sed 's/forward.*//')
+
+  {
+    printf '%s# BEGIN unit-hosts\n' "${indent}"
+    printf '%shosts {\n' "${indent}"
+    for entry in "${UNIT_HOSTS[@]}"; do
+      printf '%s    %s\n' "${indent}" "${entry}"
+    done
+    printf '%s    fallthrough\n' "${indent}"
+    printf '%s}\n' "${indent}"
+    printf '%s# END unit-hosts\n' "${indent}"
+  } > "${hosts_block_tmp}"
+
+  awk -v hosts_block="${hosts_block_tmp}" '
+    /# BEGIN unit-hosts/ { skip=1; next }
+    /# END unit-hosts/   { skip=0; next }
+    skip                 { next }
+    /[[:space:]]+forward / && !inserted {
+      while ((getline line < hosts_block) > 0) print line
+      inserted=1
+    }
+    { print }
+  ' "${corefile_tmp}" > "${modified_tmp}"
+
+  kubectl --context="${context}" create configmap coredns \
+    --from-file=Corefile="${modified_tmp}" \
+    -n kube-system \
+    --dry-run=client -o yaml \
+    | kubectl --context="${context}" replace -f -
+
+  echo "==> Restarting CoreDNS on ${context}"
+  kubectl --context="${context}" -n kube-system rollout restart deployment coredns
+  kubectl --context="${context}" -n kube-system rollout status deployment coredns --timeout=60s
+}
+
 install_crossplane() {
   local context="$1"
   echo "==> Installing Crossplane v${CROSSPLANE_VERSION} on ${context}"
@@ -58,6 +129,7 @@ apply_providers() {
 
 echo "==> Setting up commander"
 create_cluster "commander"
+patch_coredns_forwarder "kind-commander"
 install_crossplane "kind-commander"
 apply_providers "kind-commander" ".commander.providers"
 
@@ -72,6 +144,7 @@ for i in $(seq 0 $((UNIT_COUNT - 1))); do
   CONTEXT="kind-${UNIT_NAME}"
   echo "==> Setting up ${UNIT_NAME}"
   create_cluster "${UNIT_NAME}"
+  patch_coredns_forwarder "${CONTEXT}"
   install_crossplane "${CONTEXT}"
   apply_providers "${CONTEXT}" ".units[$i].providers"
 done
@@ -121,48 +194,6 @@ EOF
   UNIT_HOSTS+=("${CONTROL_PLANE_IP} ${CONTROL_PLANE_HOST}")
 done
 
-echo "==> Patching CoreDNS on commander with unit host entries"
-
-COREFILE_TMP=$(mktemp /tmp/coredns-corefile-XXXXXX)
-HOSTS_BLOCK_TMP=$(mktemp /tmp/coredns-hosts-XXXXXX)
-MODIFIED_TMP=$(mktemp /tmp/coredns-modified-XXXXXX)
-trap 'rm -f "$COREFILE_TMP" "$HOSTS_BLOCK_TMP" "$MODIFIED_TMP"' EXIT
-
-kubectl --context="${COMMANDER_CONTEXT}" -n kube-system \
-  get configmap coredns -o jsonpath='{.data.Corefile}' > "$COREFILE_TMP"
-
-INDENT=$(grep -m1 '[[:space:]]*forward ' "$COREFILE_TMP" | sed 's/forward.*//')
-
-{
-  printf '%s# BEGIN unit-hosts\n' "$INDENT"
-  printf '%shosts {\n' "$INDENT"
-  for ENTRY in "${UNIT_HOSTS[@]}"; do
-    printf '%s    %s\n' "$INDENT" "$ENTRY"
-  done
-  printf '%s    fallthrough\n' "$INDENT"
-  printf '%s}\n' "$INDENT"
-  printf '%s# END unit-hosts\n' "$INDENT"
-} > "$HOSTS_BLOCK_TMP"
-
-awk -v hosts_block="$HOSTS_BLOCK_TMP" '
-  /# BEGIN unit-hosts/ { skip=1; next }
-  /# END unit-hosts/   { skip=0; next }
-  skip                 { next }
-  /[[:space:]]+forward / && !inserted {
-    while ((getline line < hosts_block) > 0) print line
-    inserted=1
-  }
-  { print }
-' "$COREFILE_TMP" > "$MODIFIED_TMP"
-
-kubectl --context="${COMMANDER_CONTEXT}" create configmap coredns \
-  --from-file=Corefile="$MODIFIED_TMP" \
-  -n kube-system \
-  --dry-run=client -o yaml \
-  | kubectl --context="${COMMANDER_CONTEXT}" replace -f -
-
-echo "==> Restarting CoreDNS"
-kubectl --context="${COMMANDER_CONTEXT}" -n kube-system rollout restart deployment coredns
-kubectl --context="${COMMANDER_CONTEXT}" -n kube-system rollout status deployment coredns --timeout=60s
+patch_coredns_unit_hosts "${COMMANDER_CONTEXT}"
 
 echo "==> Setup complete"
