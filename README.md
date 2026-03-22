@@ -58,6 +58,8 @@ All other tools (kind, kubectl, crossplane CLI, Go) are managed by mise and inst
 
 ## Run the demo locally
 
+**IMPORTANT**: check the `Troubleshooting` section at the end in case of issues when bringing up the KinD clusters.
+
 ```sh
 mise all:setup
 mise all:deploy
@@ -149,6 +151,15 @@ Example:
 ❯ kubectl --context=kind-commander -n kube-system logs -l k8s-app=kube-proxy
 E0319 21:27:41.893683       1 run.go:72] "command failed" err="failed complete: too many open files"
 ```
+
+To avoid that, run:
+
+```sh
+sysctl -w fs.inotify.max_user_instances=1280
+sysctl -w fs.inotify.max_user_watches=655360
+```
+
+#### Colima configuration
 
 Using colima, add the following entry to `colima.yaml`:
 
