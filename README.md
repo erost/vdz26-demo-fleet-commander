@@ -14,37 +14,86 @@ The concept of the demo is simple:
 
 In a productive setup, provider-nop is replaced by providers managing real resources.
 
+An example is the `unit-aws` (disabled by default in the demo).
+
 ```mermaid
 flowchart TD
-    KUBECTL["kubectl apply"]
-
     subgraph COMMANDER["Commander (Public API)"]
-        API["Custom Resources"]
-        PC["public-compositions"]
+        NUMBER["Number<br/>platform.org/v1alpha1"]
+        STRING["String<br/>platform.org/v1alpha1"]
+        BUCKET["Bucket<br/>platform.org/v1alpha1"]
+
+        PUBLIC-COMP-NUMBER["public-function-numbers"]
+        PUBLIC-COMP-STRING["public-function-strings"]
+        PUBLIC-COMP-BUCKET["public-function-bucket"]
+
+        NUMBER-OBJECT["Object</br>objects.kubernetes.m.crossplane.io"]
+        STRING-OBJECT["Object</br>objects.kubernetes.m.crossplane.io"]
+        BUCKET-OBJECT["Object</br>objects.kubernetes.m.crossplane.io"]
         PK["provider-kubernetes"]
-        API --> PC
-        PC --> PK
+        
+        NUMBER --> PUBLIC-COMP-NUMBER
+        STRING --> PUBLIC-COMP-STRING
+        BUCKET --> PUBLIC-COMP-BUCKET
+
+        PUBLIC-COMP-NUMBER --> NUMBER-OBJECT
+        PUBLIC-COMP-STRING --> STRING-OBJECT
+        PUBLIC-COMP-BUCKET --> BUCKET-OBJECT
+
+        NUMBER-OBJECT --> PK
+        STRING-OBJECT --> PK
+        BUCKET-OBJECT --> PK
     end
 
-    subgraph UNIT-NUMBER["Unit-Numbers"]
-        NAPI["Kind: Number"]
-        NIC["internal-composition"]
+    subgraph UNIT-NUMBERS["Unit-Numbers"]
+        INUMBER["Number<br/>internal.platform.org/v1alpha1"]
+        COMP-NUMBER["function-numbers"]
+        NOP-NUMBER["NoPResource"]
         NPN["provider-noop"]
-        NAPI --> NIC
-        NIC --> NPN
+
+        INUMBER --> COMP-NUMBER
+        COMP-NUMBER --> NOP-NUMBER
+        NOP-NUMBER --> NPN
     end
 
     subgraph UNIT-STRINGS["Unit-Strings"]
-        SAPI["Kind: String"]
-        SIC["internal-composition"]
+        ISTRING["String<br/>internal.platform.org/v1alpha1"]
+        COMP-STRING["function-strings"]
+        NOP-STRING["NoPResource"]
         SPN["provider-noop"]
-        SAPI --> SIC
-        SIC --> SPN
+
+        ISTRING --> COMP-STRING
+        COMP-STRING --> NOP-STRING
+        NOP-STRING --> SPN
     end
 
-    KUBECTL --> API
-    PK --> NAPI
-    PK --> SAPI
+    subgraph UNIT-AWS["Unit-AWS"]
+        IBUCKET["Bucket<br/>internal.platform.org/v1alpha1"]
+        COMP-BUCKET["function-bucket"]
+        AWS-BUCKET["bucket<br/>lol"]
+        AWS-BUCKETACCESS["bucket<br/>lol"]
+        AWS-BUCKETVERSION["bucket<br/>lol"]
+        AWS-PROV-S3["provider-aws-s3"]
+
+        IBUCKET --> COMP-BUCKET
+        COMP-BUCKET --> AWS-BUCKET
+        COMP-BUCKET --> AWS-BUCKETACCESS
+        COMP-BUCKET --> AWS-BUCKETVERSION
+        
+        AWS-BUCKET --> AWS-PROV-S3
+        AWS-BUCKETACCESS --> AWS-PROV-S3
+        AWS-BUCKETVERSION --> AWS-PROV-S3
+    end
+
+    subgraph ACCOUNT-AWS["AWS Account"]
+        REAL-BUCKET[(S3 Bucket)]
+    end
+
+    PK --> INUMBER
+    PK --> ISTRING
+    PK --> IBUCKET
+
+    AWS-PROV-S3 --> REAL-BUCKET
 ```
 
 ## Requirements
@@ -138,6 +187,91 @@ common/deployment/*.yaml          # additional deployment configuration (e.g.: p
 common/generic-composition-chart  # a library chart used as the base for all compositions
 deployment.yaml                   # simplified deployment descriptor for all components
 ```
+
+## AWS Setup (unit-aws)
+
+**IMPORTANT**: this is disabled by default.
+
+`unit-aws` uses [provider-aws-s3 v0.58.0](https://marketplace.upbound.io/providers/upbound/provider-aws-s3/v2.5.0) to manage real S3 resources. Each namespace on `unit-aws` carries its own `ProviderConfig` named `aws`, so different namespaces can point to different AWS accounts.
+
+### Step 1 — Create a minimally-scoped IAM user
+
+In the AWS Console (or via CLI), create an IAM user with **programmatic access only** and attach the following inline policy. It grants exactly what provider-aws-s3 needs to manage a bucket, its public-access block, versioning, and lifecycle configuration — nothing more.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3BucketManagement",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetBucketTagging",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketWebsite",
+        "s3:GetBucketLogging",
+        "s3:CreateBucket",
+        "s3:ListBucket",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketAcl",
+        "s3:GetBucketPolicy",
+        "s3:GetReplicationConfiguration",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutBucketTagging",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketCORS",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucket",
+        "s3:PutBucketVersioning"
+	  ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+> `Resource: "*"` is intentional — S3 bucket ARNs are not known at policy-creation time. To lock it down further, replace `"*"` with `"arn:aws:s3:::your-prefix-*"`.
+
+Generate an **Access Key ID** and **Secret Access Key** for this user. Do not save the credentials file — enter them directly into the setup script in the next step.
+
+### Step 2 — Configure credentials on unit-aws
+
+```sh
+mise aws:setup-credentials
+```
+
+The script prompts for:
+- **Target namespace** (default: `default`) — the namespace on `unit-aws` where Buckets will be created
+- **AWS Access Key ID**
+- **AWS Secret Access Key** (input is hidden, never echoed)
+- **AWS Default Region** (default: `eu-west-1`)
+
+Credentials flow only through shell variables piped directly into `kubectl`. Nothing is written to disk. The script is idempotent — safe to re-run to rotate credentials.
+
+Repeat for each namespace that needs a different AWS account.
+
+### Step 3 — Create a Bucket
+
+Apply a `Bucket` resource to the **commander** cluster in the same namespace you configured:
+
+```yaml
+apiVersion: platform.org/v1alpha1
+kind: Bucket
+metadata:
+  name: my-demo-bucket
+  namespace: default
+spec:
+  bucketName: my-globally-unique-bucket-name
+  region: eu-west-1
+```
+
+This provisions via `unit-aws` a S3 Bucket with:
+- Public access blocked
+- Versioning enabled
 
 ## Troubleshooting
 

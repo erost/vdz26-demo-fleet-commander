@@ -6,27 +6,50 @@ commander:
       manifestFile: common/deployment/provider-kubernetes.yaml
   compositions:
     - name: public-function-numbers
+      enabled: true
       chart: oci://ghcr.io/erost/charts/public-function-numbers
       version: "0.0.1"
     - name: public-function-strings
+      enabled: true
       chart: oci://ghcr.io/erost/charts/public-function-strings
+      version: "0.0.1"
+    - name: public-function-bucket
+      enabled: false
+      chart: oci://ghcr.io/erost/charts/public-function-bucket
       version: "0.0.1"
 
 units:
   - name: unit-numbers
+    enabled: true
     providers:
       - name: provider-nop
         manifestFile: common/deployment/provider-nop.yaml
     compositions:
       - name: function-numbers
+        enabled: true
         chart: oci://ghcr.io/erost/charts/function-numbers
         version: "0.0.1"
 
   - name: unit-strings
+    enabled: true
     providers:
       - name: provider-nop
         manifestFile: common/deployment/provider-nop.yaml
     compositions:
       - name: function-strings
+        enabled: true
         chart: oci://ghcr.io/erost/charts/function-strings
+        version: "0.0.1"
+
+  - name: unit-aws
+    enabled: false
+    providers:
+      - name: provider-family-aws
+        manifestFile: common/deployment/provider-family-aws.yaml
+      - name: provider-aws-s3
+        manifestFile: common/deployment/provider-aws-s3.yaml
+    compositions:
+      - name: function-bucket
+        enabled: false
+        chart: oci://ghcr.io/erost/charts/function-bucket
         version: "0.0.1"

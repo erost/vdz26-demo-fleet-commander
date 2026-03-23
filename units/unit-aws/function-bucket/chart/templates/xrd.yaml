@@ -1,0 +1,30 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: buckets.internal.platform.org
+spec:
+  scope: Namespaced
+  group: internal.platform.org
+  names:
+    kind: Bucket
+    plural: buckets
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - bucketName
+              properties:
+                bucketName:
+                  type: string
+                  description: Globally unique S3 bucket name.
+                region:
+                  type: string
+                  description: AWS region where the bucket will be created.
+                  default: eu-west-1

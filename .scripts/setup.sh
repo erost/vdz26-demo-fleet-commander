@@ -141,6 +141,11 @@ UNIT_COUNT=$(yq '.units | length' "$DEPLOYMENT_FILE")
 
 for i in $(seq 0 $((UNIT_COUNT - 1))); do
   UNIT_NAME=$(yq -r ".units[$i].name" "$DEPLOYMENT_FILE")
+  UNIT_ENABLED=$(yq -r ".units[$i].enabled" "$DEPLOYMENT_FILE")
+  if [ "${UNIT_ENABLED}" = "false" ]; then
+    echo "==> Skipping disabled unit ${UNIT_NAME}"
+    continue
+  fi
   CONTEXT="kind-${UNIT_NAME}"
   echo "==> Setting up ${UNIT_NAME}"
   create_cluster "${UNIT_NAME}"
@@ -160,6 +165,10 @@ UNIT_HOSTS=()
 
 for i in $(seq 0 $((UNIT_COUNT - 1))); do
   UNIT_NAME=$(yq -r ".units[$i].name" "$DEPLOYMENT_FILE")
+  UNIT_ENABLED=$(yq -r ".units[$i].enabled" "$DEPLOYMENT_FILE")
+  if [ "${UNIT_ENABLED}" = "false" ]; then
+    continue
+  fi
   SECRET_NAME="kind-${UNIT_NAME}-kubeconfig-plain"
   CONTROL_PLANE_HOST="${UNIT_NAME}-control-plane"
   CONTROL_PLANE_IP=$(docker inspect "${CONTROL_PLANE_HOST}" \

@@ -14,8 +14,13 @@ deploy_compositions() {
   local count
   count=$(yq "${selector} | length" "$DEPLOYMENT_FILE")
   for i in $(seq 0 $((count - 1))); do
-    local name chart version
+    local name enabled chart version
     name=$(yq -r "${selector}[$i].name" "$DEPLOYMENT_FILE")
+    enabled=$(yq -r "${selector}[$i].enabled" "$DEPLOYMENT_FILE")
+    if [ "${enabled}" = "false" ]; then
+      echo "==> Skipping disabled composition ${name}"
+      continue
+    fi
     chart=$(yq -r "${selector}[$i].chart" "$DEPLOYMENT_FILE")
     version=$(yq -r "${selector}[$i].version" "$DEPLOYMENT_FILE")
 
@@ -51,6 +56,11 @@ deploy_compositions "kind-commander" ".commander.compositions"
 UNIT_COUNT=$(yq '.units | length' "$DEPLOYMENT_FILE")
 for i in $(seq 0 $((UNIT_COUNT - 1))); do
   UNIT_NAME=$(yq -r ".units[$i].name" "$DEPLOYMENT_FILE")
+  UNIT_ENABLED=$(yq -r ".units[$i].enabled" "$DEPLOYMENT_FILE")
+  if [ "${UNIT_ENABLED}" = "false" ]; then
+    echo "==> Skipping disabled unit ${UNIT_NAME}"
+    continue
+  fi
   echo "==> Deploying compositions to ${UNIT_NAME}"
   deploy_compositions "kind-${UNIT_NAME}" ".units[$i].compositions"
 done

@@ -1,0 +1,7 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-bucket
+spec:
+  package: ${REGISTRY}/function-bucket:${FUNCTION_VERSION}
+  packagePullPolicy: IfNotPresent

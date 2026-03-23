@@ -14,7 +14,25 @@ GOPATH = "{{config_root}}/.go"
 
 [tasks."go:test"]
 description = "Run tests for all composition functions"
-run = "go test function-numbers function-strings public-function-numbers public-function-strings"
+run = [
+    "cd units/unit-numbers/function-numbers && go test ./...",
+    "cd units/unit-strings/function-strings && go test ./...",
+    "cd units/unit-aws/function-bucket && go test ./...",
+    "cd commander/public-function-numbers && go test ./...",
+    "cd commander/public-function-strings && go test ./...",
+    "cd commander/public-function-bucket && go test ./...",
+]
+
+[tasks."go:tidy"]
+description = "Run go mod tidy in all function modules (required after adding function-bucket)"
+run = [
+    "cd units/unit-numbers/function-numbers && go mod tidy",
+    "cd units/unit-strings/function-strings && go mod tidy",
+    "cd units/unit-aws/function-bucket && go mod tidy",
+    "cd commander/public-function-numbers && go mod tidy",
+    "cd commander/public-function-strings && go mod tidy",
+    "cd commander/public-function-bucket && go mod tidy",
+]
 
 [tasks."all:setup"]
 description = "Create and configure all KinD clusters (commander + units) and provider-kubernetes"
@@ -41,9 +59,15 @@ description = "Build and push all function images sequentially"
 run = [
     "bash .scripts/build-function.sh units/unit-numbers/function-numbers function-numbers",
     "bash .scripts/build-function.sh units/unit-strings/function-strings function-strings",
+    "bash .scripts/build-function.sh units/unit-aws/function-bucket function-bucket",
     "bash .scripts/build-function.sh commander/public-function-numbers public-function-numbers",
     "bash .scripts/build-function.sh commander/public-function-strings public-function-strings",
+    "bash .scripts/build-function.sh commander/public-function-bucket public-function-bucket",
 ]
+
+[tasks."aws:setup-credentials"]
+description = "Configure AWS credentials for unit-aws (interactive, nothing written to disk)"
+run = "bash .scripts/aws-credentials.sh"
 
 [tasks."numbers:create"]
 description = "Apply example Numbers XR to the commander"
