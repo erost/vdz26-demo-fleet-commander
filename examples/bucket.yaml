@@ -1,0 +1,8 @@
+apiVersion: platform.org/v1alpha1
+kind: Bucket
+metadata:
+  name: vdz26-demo-test-live-001
+  namespace: default
+spec:
+  bucketName: vdz26-demo-test-live-001
+  region: eu-west-1
