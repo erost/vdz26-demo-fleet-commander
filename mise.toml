@@ -70,17 +70,17 @@ description = "Configure AWS credentials for unit-aws (interactive, nothing writ
 run = "bash .scripts/aws-credentials.sh"
 
 [tasks."numbers:create"]
-description = "Apply example Numbers XR to the commander"
-run = "kubectl --context=kind-commander apply -f examples/numbers.yaml"
+description = "Apply example Number XR to the commander"
+run = "kubectl --context=kind-commander apply -f examples/number.yaml"
 
 [tasks."numbers:delete"]
-description = "Delete example Numbers XR from the commander"
-run = "kubectl --context=kind-commander delete -f examples/numbers.yaml"
+description = "Delete example Number XR from the commander"
+run = "kubectl --context=kind-commander delete -f examples/number.yaml"
 
 [tasks."strings:create"]
-description = "Apply example Strings XR to the commander"
-run = "kubectl --context=kind-commander apply -f examples/strings.yaml"
+description = "Apply example String XR to the commander"
+run = "kubectl --context=kind-commander apply -f examples/string.yaml"
 
 [tasks."strings:delete"]
-description = "Delete example Strings XR from the commander"
-run = "kubectl --context=kind-commander delete -f examples/strings.yaml"
+description = "Delete example String XR from the commander"
+run = "kubectl --context=kind-commander delete -f examples/string.yaml"

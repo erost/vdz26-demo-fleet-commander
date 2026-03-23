@@ -1,6 +1,6 @@
 apiVersion: v2
 name: public-function-bucket
-description: Crossplane composition chart for the public Bucket XR on commander.
+description: Crossplane composition chart for public-function-bucket.
 type: application
 version: 0.0.0
 dependencies:

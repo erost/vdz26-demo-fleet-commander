@@ -1,7 +1,7 @@
 apiVersion: platform.org/v1alpha1
-kind: Numbers
+kind: String
 metadata:
-  name: example-numbers
+  name: example-string
   namespace: default
 spec:
-  value: "42"
+  value: "hello"

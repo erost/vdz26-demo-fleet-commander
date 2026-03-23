@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	kubeobj "github.com/crossplane-contrib/provider-kubernetes/apis/namespaced/object/v1alpha1"
-	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/logging"
+	fnv1 "github.com/crossplane/function-sdk-go/proto/v1"
 	"github.com/crossplane/function-sdk-go/resource/composed"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -24,11 +24,11 @@ func TestRunFunction(t *testing.T) {
 	f := &Function{log: logging.NewNopLogger()}
 
 	cases := map[string]struct {
-		req                *fnv1.RunFunctionRequest
-		wantAPIVer         string
-		wantKind           string
-		wantManifestAPIVer string
-		wantManifestKind   string
+		req                   *fnv1.RunFunctionRequest
+		wantAPIVer            string
+		wantKind              string
+		wantManifestAPIVer    string
+		wantManifestKind      string
 		wantManifestName      string
 		wantManifestNamespace string
 		wantValue             string
@@ -41,7 +41,7 @@ func TestRunFunction(t *testing.T) {
 					Composite: &fnv1.Resource{
 						Resource: mustStruct(map[string]interface{}{
 							"apiVersion": "platform.org/v1alpha1",
-							"kind":       "Numbers",
+							"kind":       "Number",
 							"metadata":   map[string]interface{}{"name": "test-numbers", "namespace": "team-a"},
 							"spec":       map[string]interface{}{"value": "42"},
 						}),
@@ -51,7 +51,7 @@ func TestRunFunction(t *testing.T) {
 			wantAPIVer:            kubeobj.SchemeGroupVersion.String(),
 			wantKind:              kubeobj.ObjectKind,
 			wantManifestAPIVer:    "internal.platform.org/v1alpha1",
-			wantManifestKind:      "Numbers",
+			wantManifestKind:      "Number",
 			wantManifestName:      "test-numbers",
 			wantManifestNamespace: "team-a",
 			wantValue:             "42",
@@ -64,7 +64,7 @@ func TestRunFunction(t *testing.T) {
 					Composite: &fnv1.Resource{
 						Resource: mustStruct(map[string]interface{}{
 							"apiVersion": "platform.org/v1alpha1",
-							"kind":       "Numbers",
+							"kind":       "Number",
 							"metadata":   map[string]interface{}{"name": "test-numbers", "namespace": "team-a"},
 							"spec":       map[string]interface{}{},
 						}),
@@ -74,7 +74,7 @@ func TestRunFunction(t *testing.T) {
 			wantAPIVer:            kubeobj.SchemeGroupVersion.String(),
 			wantKind:              kubeobj.ObjectKind,
 			wantManifestAPIVer:    "internal.platform.org/v1alpha1",
-			wantManifestKind:      "Numbers",
+			wantManifestKind:      "Number",
 			wantManifestName:      "test-numbers",
 			wantManifestNamespace: "team-a",
 			wantValue:             "",

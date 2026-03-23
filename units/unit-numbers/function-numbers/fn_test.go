@@ -38,7 +38,7 @@ func TestRunFunction(t *testing.T) {
 					Composite: &fnv1.Resource{
 						Resource: mustStruct(map[string]interface{}{
 							"apiVersion": "internal.platform.org/v1alpha1",
-							"kind":       "Numbers",
+							"kind":       "Number",
 							"metadata":   map[string]interface{}{"name": "test-numbers"},
 							"spec":       map[string]interface{}{"value": "3"},
 						}),
@@ -58,7 +58,7 @@ func TestRunFunction(t *testing.T) {
 					Composite: &fnv1.Resource{
 						Resource: mustStruct(map[string]interface{}{
 							"apiVersion": "internal.platform.org/v1alpha1",
-							"kind":       "Numbers",
+							"kind":       "Number",
 							"metadata":   map[string]interface{}{"name": "test-numbers"},
 							"spec":       map[string]interface{}{},
 						}),

@@ -6,7 +6,7 @@ spec:
   scope: Namespaced
   group: platform.org
   names:
-    kind: Strings
+    kind: String
     plural: strings
   versions:
     - name: v1alpha1

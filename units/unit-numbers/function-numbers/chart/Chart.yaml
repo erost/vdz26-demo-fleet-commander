@@ -1,6 +1,6 @@
 apiVersion: v2
 name: function-numbers
-description: Crossplane composition chart for the internal Numbers XR on unit-numbers.
+description: Crossplane composition chart for function-numbers.
 type: application
 version: 0.0.0
 dependencies:

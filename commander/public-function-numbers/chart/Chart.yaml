@@ -1,6 +1,6 @@
 apiVersion: v2
 name: public-function-numbers
-description: Crossplane composition chart for the public Numbers XR on commander.
+description: Crossplane composition chart for public-function-numbers.
 type: application
 version: 0.0.0
 dependencies:

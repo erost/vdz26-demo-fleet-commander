@@ -6,7 +6,7 @@ spec:
   scope: Namespaced
   group: internal.platform.org
   names:
-    kind: Numbers
+    kind: Number
     plural: numbers
   versions:
     - name: v1alpha1

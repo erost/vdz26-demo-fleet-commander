@@ -5,7 +5,7 @@ metadata:
 spec:
   compositeTypeRef:
     apiVersion: internal.platform.org/v1alpha1
-    kind: Strings
+    kind: String
   mode: Pipeline
   pipeline:
     - step: compose-nop-resource

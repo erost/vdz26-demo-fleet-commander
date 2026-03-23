@@ -61,7 +61,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1.RunFunctionRequest) 
 
 	manifest, err := json.Marshal(map[string]interface{}{
 		"apiVersion": "internal.platform.org/v1alpha1",
-		"kind":       "Strings",
+		"kind":       "String",
 		"metadata": map[string]interface{}{
 			"name":      name,
 			"namespace": namespace,

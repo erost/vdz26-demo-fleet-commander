@@ -1,6 +1,6 @@
 apiVersion: v2
 name: public-function-strings
-description: Crossplane composition chart for the public Strings XR on commander.
+description: Crossplane composition chart for public-function-strings.
 type: application
 version: 0.0.0
 dependencies:
