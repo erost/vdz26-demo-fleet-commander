@@ -70,9 +70,9 @@ flowchart TD
     subgraph UNIT-AWS["Unit-AWS"]
         IBUCKET["Bucket<br/>internal.platform.org/v1alpha1"]
         COMP-BUCKET["function-bucket"]
-        AWS-BUCKET["bucket<br/>lol"]
-        AWS-BUCKETACCESS["bucket<br/>lol"]
-        AWS-BUCKETVERSION["bucket<br/>lol"]
+        AWS-BUCKET["Bucket<br/>s3.aws.m.upbound.io"]
+        AWS-BUCKETACCESS["BucketPublicAccessBlock<br/>s3.aws.m.upbound.io"]
+        AWS-BUCKETVERSION["BucketVersioning<br/>s3.aws.m.upbound.io"]
         AWS-PROV-S3["provider-aws-s3"]
 
         IBUCKET --> COMP-BUCKET
