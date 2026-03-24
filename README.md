@@ -165,7 +165,7 @@ Configure the `BUILD_` variables according to your setup.
 
 ### Build compositions
 
-Check the `[tasks."composition:build"]` and `[tasks."composition:build:all"] for details.
+Check the `[tasks."composition:build"]` and `[tasks."composition:build:all"]` for details.
 
 New compositions can be added as long as they follow the correct convention.
 
