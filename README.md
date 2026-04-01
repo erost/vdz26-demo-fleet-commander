@@ -1,8 +1,8 @@
 # Fleet Commander Demo
 
-This is a demonstrator, with public available data and components only, of the conference talk [BREAK THE SILO: How we built a decentralized control plan for service orchestration](https://github.com/juliusbaer/conferences/blob/main/2026/voxxed-days-ticino/Fleet%20Commander%20-%20Voxxed%20Days%20Ticino%202026.pdf)
+This is a demonstrator, with public available data and components only, of the conference talk [BREAK THE SILO: How we built a decentralized control plan for service orchestration](https://github.com/juliusbaer/conferences/blob/main/2026/voxxed-days-zurich/Fleet%20Commander%20-%20Voxxed%20Days%20Zurich%202026.pdf)
 
-[Voxxed Days Ticino 2026 Recording](https://www.youtube.com/watch?v=136SC6nKJqc)
+[Voxxed Days Zurich 2026 Recording](https://www.youtube.com/watch?v=u5eAaJuZa3o)
 
 ## Concept
 
