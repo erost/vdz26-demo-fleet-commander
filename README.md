@@ -10,7 +10,7 @@ The concept of the demo is simple:
 1. apply a custom resource on the commander (Public API)
 2. the public composition function will decompose it in a provider-kubernetes `Object` that wraps the internal custom resource
 3. provider-kubernetes applies the custom resources on the Unit cluster
-4. the internal composition decomposes it on the final object: for simplicita, a provider-nop `NopResource`
+4. the internal composition decomposes it on the final object: for simplicity, a provider-nop `NopResource`
 
 In a productive setup, provider-nop is replaced by providers managing real resources.
 
